@@ -97,5 +97,51 @@ def coey_chat_preflight():
     return make_response('', 204)
 
 
+
+# --- Guides Endpoints ---
+from flask import send_from_directory, abort
+
+GUIDES_DIR = os.path.join(os.path.dirname(__file__), 'guides')
+
+@app.route('/api/guides', methods=['GET'])
+def list_guides():
+    """List available guides (filenames and titles)."""
+    try:
+        guides = []
+        for fname in os.listdir(GUIDES_DIR):
+            if fname.endswith('.md'):
+                title = fname.replace('_', ' ').replace('.md', '').title()
+                guides.append({'filename': fname, 'title': title})
+        return jsonify({'guides': guides})
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/api/guides/<guide_name>', methods=['GET'])
+def get_guide(guide_name):
+    """Serve guide content for online reading."""
+    if not guide_name.endswith('.md'):
+        guide_name += '.md'
+    try:
+        with open(os.path.join(GUIDES_DIR, guide_name), 'r', encoding='utf-8') as f:
+            content = f.read()
+        return jsonify({'content': content})
+    except FileNotFoundError:
+        abort(404)
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/api/guides/download/<guide_name>', methods=['GET'])
+def download_guide(guide_name):
+    """Download a guide as a markdown file."""
+    if not guide_name.endswith('.md'):
+        guide_name += '.md'
+    try:
+        return send_from_directory(GUIDES_DIR, guide_name, as_attachment=True)
+    except FileNotFoundError:
+        abort(404)
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+
 if __name__ == '__main__':
     app.run(debug=True)
