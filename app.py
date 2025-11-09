@@ -1,0 +1,166 @@
+
+import os
+import traceback
+import json
+from flask import Flask, request, jsonify, make_response
+import openai
+from dotenv import load_dotenv
+from datetime import datetime, timedelta
+
+load_dotenv()
+app = Flask(__name__)
+
+# --- Mock Data for Leaderboard and Recent Joins ---
+# In production, replace with database queries
+LEADERBOARD = [
+    {"username": "Rizzo", "earnings": 999, "level": "Empire"},
+    {"username": "Alex", "earnings": 497, "level": "Empire"},
+    {"username": "Sarah", "earnings": 197, "level": "Professional"},
+    {"username": "Mike", "earnings": 97, "level": "Starter Tools"},
+    {"username": "Jordan", "earnings": 29, "level": "Basic Starter"},
+]
+
+RECENT_JOINS = [
+    {"username": "newuser1", "joined_at": (datetime.utcnow() - timedelta(minutes=2)).isoformat() + "Z"},
+    {"username": "newuser2", "joined_at": (datetime.utcnow() - timedelta(minutes=5)).isoformat() + "Z"},
+    {"username": "newuser3", "joined_at": (datetime.utcnow() - timedelta(minutes=10)).isoformat() + "Z"},
+]
+
+# --- API: Leaderboard ---
+@app.route('/api/leaderboard', methods=['GET'])
+def get_leaderboard():
+    """Return the leaderboard (top users)."""
+    return jsonify({"leaderboard": LEADERBOARD})
+
+# --- API: Recent Joins ---
+@app.route('/api/recent-joins', methods=['GET'])
+def get_recent_joins():
+    """Return the most recent users who joined."""
+    return jsonify({"recent_joins": RECENT_JOINS})
+
+# Set your OpenAI API key and org ID from environment variables (now loaded from .env)
+openai_api_key = os.environ.get('OPENAI_API_KEY')
+openai_org_id = os.environ.get('OPENAI_ORG_ID')
+
+@app.route('/api/coey-chat', methods=['POST'])
+def coey_chat():
+    data = request.get_json()
+    user_message = data.get('message', '')
+    if not user_message:
+        return jsonify({'reply': "Please enter a question."}), 400
+    try:
+        # 1. Check for custom answers (exact match, case-insensitive)
+        custom_path = os.path.join(os.path.dirname(__file__), 'coey_custom_answers.json')
+        if os.path.exists(custom_path):
+            try:
+                with open(custom_path, 'r', encoding='utf-8') as f:
+                    custom_qa = json.load(f)
+                for qa in custom_qa:
+                    if qa.get('question', '').strip().lower() == user_message.strip().lower():
+                        return jsonify({'reply': qa.get('answer', '')}), 200
+            except Exception as e:
+                print('Error reading custom answers:', e)
+
+        # 2. Custom logic for marketing question (legacy, fallback)
+        if 'how do i market rizzosai' in user_message.lower():
+            stripe_connected = data.get('stripe_connected', False)
+            if not stripe_connected:
+                reply = (
+                    "To market RizzosAI, you first need to connect your Stripe account. "
+                    "Please complete the 'Connect Stripe Account' step in your dashboard. "
+                    "[Stripe Setup Guide](https://dashboard.stripe.com/register)\n\n"
+                    "Once that's done, I'll show you the full marketing guide!"
+                )
+                return jsonify({'reply': reply, 'showGuide': 'stripe'}), 200
+            else:
+                reply = (
+                    "Great! Now that your Stripe account is connected, check out our full marketing guide here: "
+                    "[RizzosAI Marketing Guide](https://rizzosai.com/marketing-guide)\n\n"
+                    "If you've finished this guide, you can mark it as done and revisit it anytime from the Guides section."
+                )
+                return jsonify({'reply': reply, 'showGuide': 'marketing'}), 200
+
+        # 3. Default: Use OpenAI
+        client = openai.OpenAI(api_key=openai_api_key, organization=openai_org_id)
+        response = client.chat.completions.create(
+            model="gpt-3.5-turbo",
+            messages=[
+                {"role": "system", "content": "You are Coey, a helpful, friendly assistant for affiliate marketers. Answer clearly and simply."},
+                {"role": "user", "content": user_message}
+            ],
+            max_tokens=400,
+            temperature=0.7
+        )
+        reply = response.choices[0].message.content.strip()
+        return jsonify({'reply': reply})
+    except Exception as e:
+        traceback.print_exc()
+        return jsonify({'reply': f"Sorry, there was an error: {str(e)}"}), 500
+
+
+
+# --- Minimal CORS after_request and OPTIONS handler ---
+@app.after_request
+def add_cors_headers(response):
+    origin = request.headers.get('Origin', '*')
+    acr_headers = request.headers.get('Access-Control-Request-Headers', 'Content-Type, Authorization')
+    response.headers['Access-Control-Allow-Origin'] = origin
+    response.headers['Vary'] = 'Origin'
+    response.headers['Access-Control-Allow-Methods'] = 'GET,POST,PUT,PATCH,DELETE,OPTIONS'
+    response.headers['Access-Control-Allow-Headers'] = acr_headers
+    response.headers['Access-Control-Allow-Credentials'] = 'true'
+    return response
+
+@app.route('/api/coey-chat', methods=['OPTIONS'])
+def coey_chat_preflight():
+    return make_response('', 204)
+
+
+
+# --- Guides Endpoints ---
+from flask import send_from_directory, abort
+
+GUIDES_DIR = os.path.join(os.path.dirname(__file__), 'guides')
+
+@app.route('/api/guides', methods=['GET'])
+def list_guides():
+    """List available guides (filenames and titles)."""
+    try:
+        guides = []
+        for fname in os.listdir(GUIDES_DIR):
+            if fname.endswith('.md'):
+                title = fname.replace('_', ' ').replace('.md', '').title()
+                guides.append({'filename': fname, 'title': title})
+        return jsonify({'guides': guides})
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/api/guides/<guide_name>', methods=['GET'])
+def get_guide(guide_name):
+    """Serve guide content for online reading."""
+    if not guide_name.endswith('.md'):
+        guide_name += '.md'
+    try:
+        with open(os.path.join(GUIDES_DIR, guide_name), 'r', encoding='utf-8') as f:
+            content = f.read()
+        return jsonify({'content': content})
+    except FileNotFoundError:
+        abort(404)
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/api/guides/download/<guide_name>', methods=['GET'])
+def download_guide(guide_name):
+    """Download a guide as a markdown file."""
+    if not guide_name.endswith('.md'):
+        guide_name += '.md'
+    try:
+        return send_from_directory(GUIDES_DIR, guide_name, as_attachment=True)
+    except FileNotFoundError:
+        abort(404)
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+
+if __name__ == '__main__':
+    app.run(debug=True)
