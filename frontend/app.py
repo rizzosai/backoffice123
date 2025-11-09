@@ -15,11 +15,9 @@ from flask_cors import CORS
 from dotenv import load_dotenv
 
 
-
 load_dotenv()
 app = Flask(__name__)
-# Restrict CORS to your frontend domain for all /api/* endpoints
-CORS(app, resources={r"/api/*": {"origins": "https://backoffice.rizzosai.com"}})
+CORS(app)
 
 # Set your OpenAI API key and org ID from environment variables (now loaded from .env)
 openai_api_key = os.environ.get('OPENAI_API_KEY')
@@ -82,23 +80,3 @@ def coey_chat():
 
 if __name__ == '__main__':
     app.run(debug=True)
-
-
-# --- Robust CORS after_request handler and OPTIONS route for preflight ---
-@app.after_request
-def add_cors_headers(response):
-    response.headers.add('Access-Control-Allow-Origin', 'https://backoffice.rizzosai.com')
-    response.headers.add('Access-Control-Allow-Credentials', 'true')
-    response.headers.add('Access-Control-Allow-Headers', 'Content-Type,Authorization')
-    response.headers.add('Access-Control-Allow-Methods', 'GET,POST,OPTIONS')
-    return response
-
-# Explicitly handle OPTIONS for all /api/* endpoints
-@app.route('/api/<path:path>', methods=['OPTIONS'])
-def api_options(path):
-    response = jsonify({'ok': True})
-    response.headers.add('Access-Control-Allow-Origin', 'https://backoffice.rizzosai.com')
-    response.headers.add('Access-Control-Allow-Credentials', 'true')
-    response.headers.add('Access-Control-Allow-Headers', 'Content-Type,Authorization')
-    response.headers.add('Access-Control-Allow-Methods', 'GET,POST,OPTIONS')
-    return response

@@ -17,8 +17,7 @@ export default function CoeyChat() {
     setInput('');
     setLoading(true);
     try {
-      console.log('Chat URL:', `${API_URL}/api/coey-chat`);
-      const res = await fetch(`${API_URL}/api/coey-chat`, {
+  const res = await fetch(`${API_URL}/api/coey-chat`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ message: input })
