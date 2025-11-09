@@ -1,5 +1,7 @@
 import { useState } from 'react';
 
+const API_URL = import.meta.env.VITE_API_URL;
+
 export default function CoeyChat() {
   const [messages, setMessages] = useState([
     { sender: 'coey', text: 'Hi! I’m Coey. Ask me anything about getting paid, setting up ads, or using your dashboard.' }
@@ -15,7 +17,7 @@ export default function CoeyChat() {
     setInput('');
     setLoading(true);
     try {
-      const res = await fetch('/api/coey-chat', {
+  const res = await fetch(`${API_URL}/api/coey-chat`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ message: input })
