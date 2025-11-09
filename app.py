@@ -9,7 +9,7 @@
 import os
 import traceback
 import json
-from flask import Flask, request, jsonify
+from flask import Flask, request, jsonify, make_response
 import openai
 from flask_cors import CORS
 from dotenv import load_dotenv
@@ -18,8 +18,6 @@ from dotenv import load_dotenv
 
 load_dotenv()
 app = Flask(__name__)
-# Restrict CORS to your frontend domain for all /api/* endpoints
-CORS(app, resources={r"/api/*": {"origins": "https://backoffice.rizzosai.com"}})
 
 # Set your OpenAI API key and org ID from environment variables (now loaded from .env)
 openai_api_key = os.environ.get('OPENAI_API_KEY')
@@ -79,6 +77,24 @@ def coey_chat():
     except Exception as e:
         traceback.print_exc()
         return jsonify({'reply': f"Sorry, there was an error: {str(e)}"}), 500
+
+
+# --- Robust CORS after_request handler and OPTIONS route for preflight ---
+@app.after_request
+def add_cors_headers(response):
+    origin = request.headers.get('Origin', '*')
+    acr_headers = request.headers.get('Access-Control-Request-Headers', 'Content-Type, Authorization')
+    response.headers['Access-Control-Allow-Origin'] = origin
+    response.headers['Vary'] = 'Origin'
+    response.headers['Access-Control-Allow-Methods'] = 'GET,POST,PUT,PATCH,DELETE,OPTIONS'
+    response.headers['Access-Control-Allow-Headers'] = acr_headers
+    response.headers['Access-Control-Allow-Credentials'] = 'true'
+    return response
+
+# OPTIONS preflight for /api/coey-chat
+@app.route('/api/coey-chat', methods=['OPTIONS'])
+def coey_chat_preflight():
+    return make_response('', 204)
 
 if __name__ == '__main__':
     app.run(debug=True)
