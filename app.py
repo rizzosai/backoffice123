@@ -11,8 +11,8 @@ import traceback
 import json
 from flask import Flask, request, jsonify, make_response
 import openai
-from flask_cors import CORS
 from dotenv import load_dotenv
+
 
 
 
@@ -79,7 +79,8 @@ def coey_chat():
         return jsonify({'reply': f"Sorry, there was an error: {str(e)}"}), 500
 
 
-# --- Robust CORS after_request handler and OPTIONS route for preflight ---
+
+# --- Minimal CORS after_request and OPTIONS handler ---
 @app.after_request
 def add_cors_headers(response):
     origin = request.headers.get('Origin', '*')
@@ -91,30 +92,10 @@ def add_cors_headers(response):
     response.headers['Access-Control-Allow-Credentials'] = 'true'
     return response
 
-# OPTIONS preflight for /api/coey-chat
 @app.route('/api/coey-chat', methods=['OPTIONS'])
 def coey_chat_preflight():
     return make_response('', 204)
 
+
 if __name__ == '__main__':
     app.run(debug=True)
-
-
-# --- Robust CORS after_request handler and OPTIONS route for preflight ---
-@app.after_request
-def add_cors_headers(response):
-    response.headers.add('Access-Control-Allow-Origin', 'https://backoffice.rizzosai.com')
-    response.headers.add('Access-Control-Allow-Credentials', 'true')
-    response.headers.add('Access-Control-Allow-Headers', 'Content-Type,Authorization')
-    response.headers.add('Access-Control-Allow-Methods', 'GET,POST,OPTIONS')
-    return response
-
-# Explicitly handle OPTIONS for all /api/* endpoints
-@app.route('/api/<path:path>', methods=['OPTIONS'])
-def api_options(path):
-    response = jsonify({'ok': True})
-    response.headers.add('Access-Control-Allow-Origin', 'https://backoffice.rizzosai.com')
-    response.headers.add('Access-Control-Allow-Credentials', 'true')
-    response.headers.add('Access-Control-Allow-Headers', 'Content-Type,Authorization')
-    response.headers.add('Access-Control-Allow-Methods', 'GET,POST,OPTIONS')
-    return response
