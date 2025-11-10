@@ -218,7 +218,7 @@
     </div>
 
     <div class="package-card">
-      <h3>Starter Tools ($97/day)</h3>
+      <h3>Starter Tools ($99/day)</h3>
       <ul>
         <li>Everything in Basic Starter</li>
         <li>Enhanced domain features</li>
@@ -230,7 +230,7 @@
     </div>
 
     <div class="package-card">
-      <h3>Professional ($197/day)</h3>
+      <h3>Professional ($249/day)</h3>
       <ul>
         <li>Everything in Starter Tools</li>
         <li>Premium domain portfolio access</li>
@@ -242,7 +242,7 @@
     </div>
 
     <div class="package-card">
-      <h3>Empire ($497/day)</h3>
+      <h3>Empire ($499/day)</h3>
       <ul>
         <li>Everything in Professional</li>
         <li>Premium domain authority</li>
@@ -321,10 +321,10 @@
     With our "Next 3" system, your earnings compound as you participate in the queue!
   </p>
   <ul style="margin: 15px 0; padding-left: 20px;">
-    <li><strong>Basic Starter ($29/day):</strong> Approximately 17 days to reach $497 with compound earnings</li>
-    <li><strong>Starter Tools ($97/day):</strong> Approximately 11 days to reach $497</li>
-    <li><strong>Professional ($197/day):</strong> Approximately 6 days to reach $497</li>
-    <li><strong>Empire ($497/day):</strong> Approximately 3 days to reach $497</li>
+  <li><strong>Basic Starter ($29/day):</strong> Approximately 17 days to reach $499 with compound earnings</li>
+  <li><strong>Starter Tools ($99/day):</strong> Approximately 6 days to reach $499</li>
+  <li><strong>Professional ($249/day):</strong> Approximately 2 days to reach $499</li>
+  <li><strong>Empire ($499/day):</strong> 1 day to reach $499</li>
   </ul>
   <p>These estimates assume you reinvest your "Next 3" commission earnings. The system works at your pace, and you decide when to upgrade.</p>
 </div>
@@ -350,3 +350,41 @@
     </iframe>
   </div>
 </section>
+
+<!-- Legal Sections removed as requested -->
+<!-- Footer with Legal Links -->
+<footer style="background: #0033a0; color: #fff; text-align: center; padding: 24px 0 16px 0; margin-top: 0; font-size: 1em;">
+  <div style="margin-bottom: 8px;">
+    <a href="#" onclick="openModal('privacy')" style="color: #fff; text-decoration: underline; margin: 0 18px; font-weight: 600;">Privacy Policy</a>
+    |
+    <a href="#" onclick="openModal('terms')" style="color: #fff; text-decoration: underline; margin: 0 18px; font-weight: 600;">Terms &amp; Conditions</a>
+  </div>
+  <div style="font-size: 0.95em; opacity: 0.85;">&copy; 2025 RizzosAI.com. All rights reserved.</div>
+
+  <!-- Modal for Privacy Policy and Terms -->
+  <div id="legal-modal" style="display:none; position:fixed; z-index:9999; left:0; top:0; width:100vw; height:100vh; background:rgba(0,0,0,0.65); align-items:center; justify-content:center;">
+    <div id="legal-modal-content" style="background:#fff; color:#222; max-width:600px; margin:40px auto; padding:32px 24px 24px 24px; border-radius:12px; box-shadow:0 8px 32px #0033a099; position:relative;">
+      <button onclick="closeModal()" style="position:absolute; top:12px; right:16px; background:none; border:none; font-size:1.5em; color:#0033a0; cursor:pointer;">&times;</button>
+      <div id="legal-modal-body"></div>
+    </div>
+  </div>
+  <script>
+    function openModal(type) {
+      var modal = document.getElementById('legal-modal');
+      var body = document.getElementById('legal-modal-body');
+      if (type === 'privacy') {
+        body.innerHTML = `<h2 style='color:#0033a0;'>Privacy Policy</h2><p>Your privacy is important to us. We do not sell, rent, or share your personal information with third parties except as required to provide our services or comply with the law. All data is stored securely and used only for the operation of your account and the affiliate system. By using this site, you consent to our collection and use of your information as described here.</p>`;
+      } else if (type === 'terms') {
+        body.innerHTML = `<h2 style='color:#d9001f;'>Terms &amp; Conditions</h2><ul style='margin-left:1em;'><li>By joining and making your first payment, you agree to abide by all rules and policies of this site.</li><li>All sales are final. <strong>There are no refunds after your first payment</strong>, regardless of usage or participation.</li><li>It is your responsibility to keep your membership active to continue earning and participating in the system.</li><li>We reserve the right to update these terms at any time. Continued use of the site constitutes acceptance of any changes.</li></ul><p style='color:#0033a0; font-size:0.98em; margin-top:18px;'>If you have questions about these terms, please contact support.</p>`;
+      }
+      modal.style.display = 'flex';
+    }
+    function closeModal() {
+      document.getElementById('legal-modal').style.display = 'none';
+    }
+    // Optional: close modal on background click
+    document.getElementById('legal-modal').addEventListener('click', function(e) {
+      if (e.target === this) closeModal();
+    });
+  </script>
+</footer>
