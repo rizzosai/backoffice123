@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Affiliate Login</title>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Montserrat:700,400&display=swap">
+  <style>
+    body {
+      background: #f4f8fb;
+      font-family: 'Montserrat', Arial, sans-serif;
+      margin: 0;
+      padding: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
+    }
+    .login-container {
+      background: #fff;
+      border-radius: 14px;
+      box-shadow: 0 4px 24px #0033a033;
+      padding: 40px 32px 32px 32px;
+      max-width: 350px;
+      width: 100%;
+      text-align: center;
+      border-top: 8px solid #d9001f;
+      border-bottom: 8px solid #0033a0;
+    }
+    .login-container h2 {
+      margin: 0 0 24px 0;
+      color: #0033a0;
+      font-size: 1.7em;
+      font-weight: 900;
+    }
+    .login-container label {
+      display: block;
+      text-align: left;
+      margin-bottom: 6px;
+      color: #222;
+      font-weight: 600;
+    }
+    .login-container input[type="text"],
+    .login-container input[type="password"] {
+      width: 100%;
+      padding: 10px 12px;
+      margin-bottom: 18px;
+      border: 1px solid #bfc9d1;
+      border-radius: 6px;
+      font-size: 1em;
+      background: #f7fafd;
+      transition: border 0.2s;
+    }
+    .login-container input[type="text"]:focus,
+    .login-container input[type="password"]:focus {
+      border: 1.5px solid #0033a0;
+      outline: none;
+    }
+    .login-container button {
+      width: 100%;
+      background: linear-gradient(90deg, #d9001f 0%, #0033a0 100%);
+      color: #fff;
+      border: none;
+      border-radius: 6px;
+      padding: 12px 0;
+      font-size: 1.1em;
+      font-weight: 700;
+      cursor: pointer;
+      transition: background 0.2s;
+      margin-top: 8px;
+    }
+    .login-container button:hover {
+      background: linear-gradient(90deg, #0033a0 0%, #d9001f 100%);
+    }
+    .login-container .error {
+      color: #d9001f;
+      margin-top: 10px;
+      font-weight: bold;
+      display: none;
+    }
+    @media (max-width: 500px) {
+      .login-container { padding: 24px 6vw; }
+    }
+  </style>
+</head>
+<body>
+  <div class="login-container">
+    <h2>Affiliate Login</h2>
+    <form id="login-form" autocomplete="off">
+      <label for="username">Username</label>
+      <input type="text" id="username" name="username" required autofocus>
+      <label for="password">Password</label>
+      <div style="position:relative;">
+        <input type="password" id="password" name="password" required autocomplete="off" style="width:100%;">
+        <button type="button" id="toggle-password" style="position:absolute; right:8px; top:8px; background:none; border:none; color:#0033a0; font-size:1em; cursor:pointer;" tabindex="-1">Show</button>
+      </div>
+      <button type="submit">Login</button>
+  <div class="error" id="login-error"></div>
+    </form>
+  </div>
+  <script>
+    // Show/hide password toggle
+    const passwordInput = document.getElementById('password');
+    const toggleBtn = document.getElementById('toggle-password');
+    toggleBtn.addEventListener('click', function() {
+      if (passwordInput.type === 'password') {
+        passwordInput.type = 'text';
+        toggleBtn.textContent = 'Hide';
+      } else {
+        passwordInput.type = 'password';
+        toggleBtn.textContent = 'Show';
+      }
+    });
+
+    document.getElementById('login-form').addEventListener('submit', async function(e) {
+      e.preventDefault();
+      const username = document.getElementById('username').value.trim();
+      const password = document.getElementById('password').value;
+      const errorDiv = document.getElementById('login-error');
+      errorDiv.style.display = 'none';
+      errorDiv.textContent = '';
+      try {
+        const res = await fetch('/api/login', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          credentials: 'include',
+          body: JSON.stringify({ username, password })
+        });
+        let data = {};
+        try {
+          data = await res.json();
+        } catch (jsonErr) {
+          data = {};
+        }
+        if (res.ok && data.success) {
+          // Confirm session is set by checking /api/session-check
+          const check = await fetch('/api/session-check', { credentials: 'include' });
+          if (check.ok) {
+            window.location.href = 'affiliate_backoffice.html';
+          } else {
+            errorDiv.textContent = 'Session error. Please try again.';
+            errorDiv.style.display = 'block';
+          }
+        } else {
+          errorDiv.textContent = data.message || 'Invalid username or password.';
+          errorDiv.style.display = 'block';
+        }
+      } catch (err) {
+        errorDiv.textContent = 'Network or server error.';
+        errorDiv.style.display = 'block';
+      }
+    });
+  </script>
+</body>
+</html>
