@@ -6,8 +6,8 @@ const Leaderboard = () => {
   const [error, setError] = useState(null);
 
   useEffect(() => {
-    // TODO: Replace with real backend API endpoint
-    fetch('/api/leaderboard')
+  // Use deployed backoffice API
+  fetch('https://backoffice.rizzosai.com/api/leaderboard')
       .then((res) => {
         if (!res.ok) throw new Error('Failed to fetch leaderboard');
         return res.json();

@@ -270,7 +270,7 @@
       const list = document.getElementById('leaderboard-list');
       const error = document.getElementById('leaderboard-error');
       try {
-        const res = await fetch('/api/leaderboard');
+  const res = await fetch('https://backoffice.rizzosai.com/api/leaderboard');
         if (!res.ok) throw new Error('Network error');
         const data = await res.json();
         list.innerHTML = '';
@@ -291,6 +291,56 @@
       }
     }
     loadLeaderboard();
+  </script>
+
+  <!-- AI Chat Widget -->
+  <div id="ai-chat-widget" style="position:fixed;bottom:24px;right:24px;width:340px;max-width:90vw;z-index:9999;font-family:Montserrat,Arial,sans-serif;">
+    <div style="background:#0033a0;color:#fff;padding:12px 16px;border-radius:12px 12px 0 0;font-weight:700;">AI Assistant</div>
+    <div id="ai-chat-messages" style="background:#fff;height:220px;overflow-y:auto;padding:12px 10px 8px 10px;border:1px solid #0033a0;border-top:none;font-size:1em;"></div>
+    <form id="ai-chat-form" style="display:flex;border:1px solid #0033a0;border-top:none;border-radius:0 0 12px 12px;background:#f4f8fb;">
+      <input id="ai-chat-input" type="text" placeholder="Ask me anything..." autocomplete="off" style="flex:1;padding:10px 8px;border:none;border-radius:0 0 0 12px;font-size:1em;outline:none;" />
+      <button type="submit" style="background:#d9001f;color:#fff;border:none;padding:0 18px;font-weight:700;font-size:1em;border-radius:0 0 12px 0;cursor:pointer;">Send</button>
+    </form>
+  </div>
+  <script>
+    // Simple chat UI logic (no backend integration yet)
+    const chatForm = document.getElementById('ai-chat-form');
+    const chatInput = document.getElementById('ai-chat-input');
+    const chatMessages = document.getElementById('ai-chat-messages');
+    function appendMessage(sender, text) {
+      const msg = document.createElement('div');
+      msg.style.margin = '8px 0';
+      msg.innerHTML = `<b style='color:${sender==='You'?'#0033a0':'#d9001f'}'>${sender}:</b> <span>${text}</span>`;
+      chatMessages.appendChild(msg);
+      chatMessages.scrollTop = chatMessages.scrollHeight;
+    }
+    chatForm.addEventListener('submit', async function(e) {
+      e.preventDefault();
+      const text = chatInput.value.trim();
+      if (!text) return;
+      appendMessage('You', text);
+      chatInput.value = '';
+      // Send to backend
+      appendMessage('AI', '<em>Thinking...</em>');
+      try {
+        const res = await fetch('/api/ai-chat', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ message: text })
+        });
+        const data = await res.json();
+        // Remove the 'Thinking...' message
+        chatMessages.removeChild(chatMessages.lastChild);
+        if (data.reply) {
+          appendMessage('AI', data.reply);
+        } else {
+          appendMessage('AI', data.error || 'Sorry, something went wrong.');
+        }
+      } catch (err) {
+        chatMessages.removeChild(chatMessages.lastChild);
+        appendMessage('AI', 'Network error.');
+      }
+    });
   </script>
 </body>
 </html>

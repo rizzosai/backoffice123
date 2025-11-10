@@ -143,7 +143,7 @@
           const list = document.querySelector('.leaderboard-list');
           const loading = document.getElementById('leaderboard-loading');
           try {
-            const res = await fetch('/api/leaderboard');
+            const res = await fetch('https://backoffice.rizzosai.com/api/leaderboard');
             if (!res.ok) throw new Error('Network error');
             const data = await res.json();
             list.innerHTML = '';

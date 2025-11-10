@@ -270,7 +270,7 @@
       const list = document.getElementById('leaderboard-list');
       const error = document.getElementById('leaderboard-error');
       try {
-        const res = await fetch('/api/leaderboard');
+  const res = await fetch('https://backoffice.rizzosai.com/api/leaderboard');
         if (!res.ok) throw new Error('Network error');
         const data = await res.json();
         list.innerHTML = '';

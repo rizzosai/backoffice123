@@ -84,8 +84,95 @@
       <button type="submit">Login</button>
       <div class="error" id="login-error" style="display:none;"></div>
     </form>
+  <button id="show-register" style="margin-top:18px;background:#4caf50;">Register</button>
+  <button id="show-admin" style="margin-top:8px;background:#0033a0;">Admin Login</button>
+  <button id="show-reset" style="margin-top:8px;background:#e67e22;">Forgot Password?</button>
+    <!-- Password Reset Form (hidden by default) -->
+    <form id="reset-form" style="display:none;margin-top:24px;">
+      <label for="reset-email">Email</label>
+      <input type="text" id="reset-email" name="reset-email" required>
+      <button type="submit" style="background:#e67e22;">Send Reset Link</button>
+      <div class="error" id="reset-error" style="display:none;"></div>
+      <div id="reset-success" style="display:none;color:#4caf50;font-weight:bold;margin-top:10px;"></div>
+    </form>
+    <!-- Registration Form (hidden by default) -->
+    <form id="register-form" style="display:none;margin-top:24px;">
+      <label for="reg-username">Username</label>
+      <input type="text" id="reg-username" name="reg-username" required>
+      <label for="reg-email">Email</label>
+      <input type="text" id="reg-email" name="reg-email" required>
+      <label for="reg-password">Password</label>
+      <input type="password" id="reg-password" name="reg-password" required>
+      <button type="submit" style="background:#4caf50;">Register</button>
+      <div class="error" id="register-error" style="display:none;"></div>
+    </form>
+    <!-- Admin Login Form (hidden by default) -->
+    <form id="admin-form" style="display:none;margin-top:24px;">
+      <label for="admin-username">Admin Username</label>
+      <input type="text" id="admin-username" name="admin-username" required>
+      <label for="admin-password">Password</label>
+      <input type="password" id="admin-password" name="admin-password" required>
+      <label for="admin-code">Admin Code</label>
+      <input type="text" id="admin-code" name="admin-code" required>
+      <button type="submit" style="background:#0033a0;">Admin Login</button>
+      <div class="error" id="admin-error" style="display:none;"></div>
+    </form>
   </div>
   <script>
+    // Show/hide forms
+    document.getElementById('show-register').onclick = function() {
+      document.getElementById('register-form').style.display = 'block';
+      document.getElementById('login-form').style.display = 'none';
+      document.getElementById('admin-form').style.display = 'none';
+      document.getElementById('reset-form').style.display = 'none';
+    };
+    document.getElementById('show-admin').onclick = function() {
+      document.getElementById('admin-form').style.display = 'block';
+      document.getElementById('login-form').style.display = 'none';
+      document.getElementById('register-form').style.display = 'none';
+      document.getElementById('reset-form').style.display = 'none';
+    };
+    document.getElementById('show-reset').onclick = function() {
+      document.getElementById('reset-form').style.display = 'block';
+      document.getElementById('login-form').style.display = 'none';
+      document.getElementById('register-form').style.display = 'none';
+      document.getElementById('admin-form').style.display = 'none';
+    };
+    // Back to login on submit success or error
+    function showLogin() {
+      document.getElementById('login-form').style.display = 'block';
+      document.getElementById('register-form').style.display = 'none';
+      document.getElementById('admin-form').style.display = 'none';
+      document.getElementById('reset-form').style.display = 'none';
+    }
+    // Password reset
+    document.getElementById('reset-form').addEventListener('submit', async function(e) {
+      e.preventDefault();
+      const email = document.getElementById('reset-email').value;
+      const errorDiv = document.getElementById('reset-error');
+      const successDiv = document.getElementById('reset-success');
+      errorDiv.style.display = 'none';
+      successDiv.style.display = 'none';
+      try {
+        const res = await fetch('/api/request-password-reset', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email })
+        });
+        const data = await res.json();
+        if (res.ok && data.success) {
+          successDiv.textContent = data.message || 'If this email exists, a reset link will be sent.';
+          successDiv.style.display = 'block';
+        } else {
+          errorDiv.textContent = data.message || 'Reset failed.';
+          errorDiv.style.display = 'block';
+        }
+      } catch (err) {
+        errorDiv.textContent = 'Network error.';
+        errorDiv.style.display = 'block';
+      }
+    });
+    // Regular login
     document.getElementById('login-form').addEventListener('submit', async function(e) {
       e.preventDefault();
       const username = document.getElementById('username').value;
@@ -104,6 +191,60 @@
           window.location.href = '/dashboard';
         } else {
           errorDiv.textContent = data.message || 'Login failed.';
+          errorDiv.style.display = 'block';
+        }
+      } catch (err) {
+        errorDiv.textContent = 'Network error.';
+        errorDiv.style.display = 'block';
+      }
+    });
+    // Registration
+    document.getElementById('register-form').addEventListener('submit', async function(e) {
+      e.preventDefault();
+      const username = document.getElementById('reg-username').value;
+      const email = document.getElementById('reg-email').value;
+      const password = document.getElementById('reg-password').value;
+      const errorDiv = document.getElementById('register-error');
+      errorDiv.style.display = 'none';
+      try {
+        const res = await fetch('/api/register', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ username, email, password })
+        });
+        const data = await res.json();
+        if (res.ok && data.success) {
+          alert('Registration successful! You can now log in.');
+          showLogin();
+        } else {
+          errorDiv.textContent = data.message || 'Registration failed.';
+          errorDiv.style.display = 'block';
+        }
+      } catch (err) {
+        errorDiv.textContent = 'Network error.';
+        errorDiv.style.display = 'block';
+      }
+    });
+    // Admin login
+    document.getElementById('admin-form').addEventListener('submit', async function(e) {
+      e.preventDefault();
+      const username = document.getElementById('admin-username').value;
+      const password = document.getElementById('admin-password').value;
+      const admin_code = document.getElementById('admin-code').value;
+      const errorDiv = document.getElementById('admin-error');
+      errorDiv.style.display = 'none';
+      try {
+        const res = await fetch('/api/login', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          credentials: 'include',
+          body: JSON.stringify({ username, password, admin_code })
+        });
+        const data = await res.json();
+        if (res.ok && data.success && data.is_admin) {
+          window.location.href = '/dashboard';
+        } else {
+          errorDiv.textContent = data.message || 'Admin login failed.';
           errorDiv.style.display = 'block';
         }
       } catch (err) {
