@@ -1,4 +1,43 @@
+
+import os
 import stripe
+import sqlite3
+import requests
+from flask import Flask, request, jsonify, session, make_response, send_from_directory, abort
+from werkzeug.security import generate_password_hash, check_password_hash
+from datetime import datetime, timedelta
+from flask_cors import CORS
+
+app = Flask(__name__)
+app.secret_key = os.environ.get('SECRET_KEY', 'supersecretkey')  # Set this in your .env for production
+
+# --- Secure CORS for production ---
+# Only allow requests from your frontend domains
+CORS(app, origins=[
+    "https://rizzosai.com",
+    "https://www.rizzosai.com",
+    "https://backoffice.rizzosai.com",
+    "https://sales.rizzosai.com"
+], supports_credentials=True)
+
+# --- SQLite Setup ---
+DB_PATH = os.path.join(os.path.dirname(__file__), 'users.db')
+
+def init_db():
+    with sqlite3.connect(DB_PATH) as conn:
+        c = conn.cursor()
+        c.execute('''CREATE TABLE IF NOT EXISTS users (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            username TEXT UNIQUE NOT NULL,
+            email TEXT UNIQUE NOT NULL,
+            password_hash TEXT NOT NULL,
+            is_admin INTEGER DEFAULT 0,
+            paid INTEGER DEFAULT 0
+        )''')
+        conn.commit()
+
+init_db()
+
 # --- Stripe Webhook: Mark user as paid ---
 @app.route('/api/stripe-webhook', methods=['POST'])
 def stripe_webhook():
@@ -23,25 +62,7 @@ def stripe_webhook():
                 c.execute('UPDATE users SET paid=1 WHERE email=?', (user_email,))
                 conn.commit()
     return '', 200
-import sqlite3
-from werkzeug.security import generate_password_hash, check_password_hash
-# --- SQLite Setup ---
-DB_PATH = os.path.join(os.path.dirname(__file__), 'users.db')
 
-def init_db():
-    with sqlite3.connect(DB_PATH) as conn:
-        c = conn.cursor()
-        c.execute('''CREATE TABLE IF NOT EXISTS users (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            username TEXT UNIQUE NOT NULL,
-            email TEXT UNIQUE NOT NULL,
-            password_hash TEXT NOT NULL,
-            is_admin INTEGER DEFAULT 0,
-            paid INTEGER DEFAULT 0
-        )''')
-        conn.commit()
-
-init_db()
 # --- User Registration ---
 @app.route('/api/register', methods=['POST'])
 def register():
@@ -62,6 +83,7 @@ def register():
         return jsonify({'success': True, 'message': 'Registration successful.'})
     except sqlite3.IntegrityError:
         return jsonify({'success': False, 'message': 'Username or email already exists.'}), 409
+
 # --- User Login (with admin code for admins) ---
 @app.route('/api/login', methods=['POST'])
 def login():
@@ -90,6 +112,7 @@ def login():
         session['username'] = username
         session['is_admin'] = bool(is_admin)
         return jsonify({'success': True, 'message': 'Login successful.', 'username': username, 'is_admin': bool(is_admin)})
+
 # --- Password Reset (send email logic not implemented) ---
 @app.route('/api/request-password-reset', methods=['POST'])
 def request_password_reset():
@@ -98,9 +121,10 @@ def request_password_reset():
     # Here you would generate a reset token and send an email
     # For now, just return success for demo
     return jsonify({'success': True, 'message': 'If this email exists, a reset link will be sent.'})
-import requests
+
 # --- Example: Securely load Namecheap API credentials from environment variables ---
 OPENAI_API_KEY = os.environ.get('OPENAI_API_KEY')
+
 # --- AI Chat Endpoint ---
 @app.route('/api/ai-chat', methods=['POST'])
 def ai_chat():
@@ -133,83 +157,36 @@ def ai_chat():
         return jsonify({'error': f'AI request failed: {str(e)}'}), 500
 
 
+# --- Render Deploy Automation Endpoint ---
+@app.route('/api/deploy', methods=['POST'])
+def trigger_render_deploy():
+    render_api_key = os.environ.get('RENDER_API_KEY')
+    service_id = os.environ.get('RENDER_SERVICE_ID')
+    if not render_api_key or not service_id:
+        return jsonify({'error': 'Render API credentials not set.'}), 500
+    url = f"https://api.render.com/v1/services/{service_id}/deploys"
+    headers = {"Authorization": f"Bearer {render_api_key}"}
+    resp = requests.post(url, headers=headers)
+    if resp.status_code == 201:
+        return jsonify({'success': True, 'message': 'Deploy triggered.'})
+    else:
+        return jsonify({'error': 'Failed to trigger deploy.', 'details': resp.text}), 500
 
-# --- Clean Flask Backend: Affiliate Backoffice ---
+# --- Git Commit & Push Automation Endpoint ---
+import subprocess
 
-import os
-from flask import Flask, request, jsonify, session, make_response, send_from_directory, abort
-from datetime import datetime, timedelta
-from flask_cors import CORS
-
-
-app = Flask(__name__)
-app.secret_key = os.environ.get('SECRET_KEY', 'supersecretkey')  # Set this in your .env for production
-
-# --- Secure CORS for production ---
-# Only allow requests from your frontend domains
-CORS(app, origins=[
-    "https://rizzosai.com",
-    "https://www.rizzosai.com",
-    "https://backoffice.rizzosai.com"
-], supports_credentials=True)
-
-# --- Example: Securely load Namecheap API credentials from environment variables ---
-NAMECHEAP_API_USER = os.environ.get('NAMECHEAP_API_USER')
-NAMECHEAP_API_KEY = os.environ.get('NAMECHEAP_API_KEY')
-
-
-## Removed manual CORS handler; using Flask-CORS for security and simplicity
-
-# --- Session-based Login ---
-@app.route('/api/login', methods=['POST'])
-def login():
+@app.route('/api/git-commit', methods=['POST'])
+def git_commit():
     data = request.get_json(force=True)
-    username = data.get('username', '')
-    password = data.get('password', '')
-    # Demo credentials: rizzo / farout
-    if username == 'rizzo' and password == 'farout':
-        session['logged_in'] = True
-        session['username'] = username
-        return jsonify({'success': True, 'message': 'Login successful.', 'username': username})
-    else:
-        session.clear()
-        return jsonify({'success': False, 'message': 'Invalid username or password.'}), 401
+    commit_message = data.get('message', 'AI commit')
+    try:
+        subprocess.run(['git', 'add', '.'], check=True)
+        subprocess.run(['git', 'commit', '-m', commit_message], check=True)
+        subprocess.run(['git', 'push'], check=True)
+        return jsonify({'success': True, 'message': 'Code committed and pushed.'})
+    except subprocess.CalledProcessError as e:
+        return jsonify({'error': str(e)}), 500
 
-@app.route('/api/session-check', methods=['GET'])
-def session_check():
-    if session.get('logged_in'):
-        return jsonify({'logged_in': True, 'username': session.get('username')})
-    else:
-        return jsonify({'logged_in': False}), 401
-
-@app.route('/api/logout', methods=['POST'])
-def logout():
-    session.clear()
-    return jsonify({'success': True, 'message': 'Logged out.'})
-
-# --- Mock Data for Leaderboard and Recent Joins ---
-LEADERBOARD = [
-    {"username": "Rizzo", "earnings": 999, "level": "Empire"},
-    {"username": "Alex", "earnings": 497, "level": "Empire"},
-    {"username": "Sarah", "earnings": 197, "level": "Professional"},
-    {"username": "Mike", "earnings": 97, "level": "Starter Tools"},
-    {"username": "Jordan", "earnings": 29, "level": "Basic Starter"},
-]
-
-@app.route('/api/leaderboard', methods=['GET'])
-def get_leaderboard():
-    return jsonify({"leaderboard": LEADERBOARD})
-
-@app.route('/api/recent-joins', methods=['GET'])
-def get_recent_joins():
-    RECENT_JOINS = [
-        {"username": "newuser1", "joined_at": (datetime.utcnow() - timedelta(minutes=2)).isoformat() + "Z"},
-        {"username": "newuser2", "joined_at": (datetime.utcnow() - timedelta(minutes=5)).isoformat() + "Z"},
-        {"username": "newuser3", "joined_at": (datetime.utcnow() - timedelta(minutes=10)).isoformat() + "Z"},
-    ]
-    return jsonify({"recent_joins": RECENT_JOINS})
-
-# --- Guides Endpoints ---
 GUIDES_DIR = os.path.join(os.path.dirname(__file__), 'guides')
 
 @app.route('/api/guides', methods=['GET'])
@@ -248,6 +225,27 @@ def download_guide(guide_name):
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
+# --- Mock Data for Leaderboard and Recent Joins ---
+LEADERBOARD = [
+    {"username": "Rizzo", "earnings": 999, "level": "Empire"},
+    {"username": "Alex", "earnings": 497, "level": "Empire"},
+    {"username": "Sarah", "earnings": 197, "level": "Professional"},
+    {"username": "Mike", "earnings": 97, "level": "Starter Tools"},
+    {"username": "Jordan", "earnings": 29, "level": "Basic Starter"},
+]
+
+@app.route('/api/leaderboard', methods=['GET'])
+def get_leaderboard():
+    return jsonify({"leaderboard": LEADERBOARD})
+
+@app.route('/api/recent-joins', methods=['GET'])
+def get_recent_joins():
+    RECENT_JOINS = [
+        {"username": "newuser1", "joined_at": (datetime.utcnow() - timedelta(minutes=2)).isoformat() + "Z"},
+        {"username": "newuser2", "joined_at": (datetime.utcnow() - timedelta(minutes=5)).isoformat() + "Z"},
+        {"username": "newuser3", "joined_at": (datetime.utcnow() - timedelta(minutes=10)).isoformat() + "Z"},
+    ]
+    return jsonify({"recent_joins": RECENT_JOINS})
 
 # --- Serve static HTML for login and dashboard ---
 @app.route('/login')
