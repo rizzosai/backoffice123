@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Affiliate Login</title>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Montserrat:700,400&display=swap">
+  <style>
+    body {
+      font-family: 'Montserrat', Arial, sans-serif;
+      background: #f4f8fb;
+      margin: 0;
+      padding: 0;
+      color: #222;
+    }
+    .login-container {
+      background: #fff;
+      border-radius: 12px;
+      box-shadow: 0 2px 12px #0033a033;
+      margin: 64px auto 0 auto;
+      max-width: 400px;
+      padding: 32px 28px;
+      text-align: center;
+    }
+    h1 {
+      color: #d9001f;
+      background: #0033a0;
+      display: inline-block;
+      padding: 12px 32px;
+      border-radius: 8px;
+      font-size: 2em;
+      font-weight: 900;
+      margin: 0 0 24px 0;
+      letter-spacing: 1px;
+    }
+    label {
+      display: block;
+      margin: 18px 0 6px 0;
+      font-weight: 700;
+      color: #0033a0;
+    }
+    input[type="text"], input[type="password"] {
+      width: 100%;
+      padding: 10px;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+      font-size: 1em;
+      margin-bottom: 12px;
+    }
+    button {
+      background: #0033a0;
+      color: #fff;
+      border: none;
+      border-radius: 6px;
+      padding: 12px 32px;
+      font-size: 1.1em;
+      font-weight: 700;
+      cursor: pointer;
+      margin-top: 10px;
+      transition: background 0.2s;
+    }
+    button:hover {
+      background: #d9001f;
+    }
+    .error {
+      color: #d9001f;
+      font-weight: bold;
+      margin-top: 10px;
+    }
+    @media (max-width: 600px) {
+      .login-container { max-width: 98vw; padding: 18px 4vw; }
+      h1 { font-size: 1.2em; padding: 8px 8vw; }
+    }
+  </style>
+</head>
+<body>
+  <div class="login-container">
+    <h1>Affiliate Login</h1>
+    <form id="login-form">
+      <label for="username">Username</label>
+      <input type="text" id="username" name="username" required>
+      <label for="password">Password</label>
+      <input type="password" id="password" name="password" required>
+      <button type="submit">Login</button>
+      <div class="error" id="login-error" style="display:none;"></div>
+    </form>
+  </div>
+  <script>
+    document.getElementById('login-form').addEventListener('submit', async function(e) {
+      e.preventDefault();
+      const username = document.getElementById('username').value;
+      const password = document.getElementById('password').value;
+      const errorDiv = document.getElementById('login-error');
+      errorDiv.style.display = 'none';
+      try {
+        const res = await fetch('/api/login', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          credentials: 'include',
+          body: JSON.stringify({ username, password })
+        });
+        const data = await res.json();
+        if (res.ok && data.success) {
+          window.location.href = '/dashboard';
+        } else {
+          errorDiv.textContent = data.message || 'Login failed.';
+          errorDiv.style.display = 'block';
+        }
+      } catch (err) {
+        errorDiv.textContent = 'Network error.';
+        errorDiv.style.display = 'block';
+      }
+    });
+  </script>
+</body>
+</html>

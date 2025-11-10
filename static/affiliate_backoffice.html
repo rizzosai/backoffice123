@@ -1,0 +1,296 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Affiliate Back Office</title>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Montserrat:700,400&display=swap">
+  <style>
+    body {
+      font-family: 'Montserrat', Arial, sans-serif;
+      background: #f4f8fb;
+      margin: 0;
+      padding: 0;
+      color: #222;
+    }
+    .header {
+      background: #fff;
+      border-left: 8px solid #0033a0;
+      border-right: 8px solid #d9001f;
+      box-shadow: 0 4px 24px #0033a033;
+      padding: 24px 0 16px 0;
+      text-align: center;
+      margin-bottom: 32px;
+    }
+    .header h1 {
+      color: #d9001f;
+      background: #0033a0;
+      display: inline-block;
+      padding: 12px 32px;
+      border-radius: 8px;
+      font-size: 2.2em;
+      font-weight: 900;
+      margin: 0;
+      letter-spacing: 1px;
+    }
+    .section {
+      background: #fff;
+      border-radius: 12px;
+      box-shadow: 0 2px 12px #0033a033;
+      margin: 24px auto;
+      max-width: 700px;
+      padding: 32px 28px;
+    }
+    .section h2 {
+      color: #0033a0;
+      margin-top: 0;
+      font-size: 1.5em;
+      font-weight: 700;
+    }
+    .section ul, .section ol {
+      margin: 0 0 0 18px;
+      padding: 0;
+    }
+    .section li {
+      margin-bottom: 10px;
+      font-size: 1.08em;
+    }
+    .tips {
+      background: #e8f4fd;
+      border-left: 4px solid #0033a0;
+      border-radius: 8px;
+      padding: 16px 18px;
+      margin: 18px 0 0 0;
+      color: #0033a0;
+      font-weight: 600;
+    }
+    .leaderboard {
+      background: #fff3cd;
+      border-left: 4px solid #ffd700;
+      border-radius: 10px;
+      margin: 32px auto 0 auto;
+      max-width: 700px;
+      padding: 24px 20px;
+      box-shadow: 0 2px 12px #ffd70033;
+    }
+    .leaderboard h3 {
+      color: #d9001f;
+      margin-top: 0;
+      font-size: 1.3em;
+    }
+    .leaderboard-list {
+      list-style: none;
+      padding-left: 0;
+      margin: 0;
+    }
+    .leaderboard-list li {
+      font-size: 1.1em;
+      margin-bottom: 6px;
+    }
+    .error {
+      color: #d9001f;
+      font-weight: bold;
+      margin-top: 10px;
+    }
+    @media (max-width: 800px) {
+      .section, .leaderboard { max-width: 98vw; padding: 18px 4vw; }
+      .header h1 { font-size: 1.2em; padding: 8px 8vw; }
+    }
+  </style>
+</head>
+<body>
+
+  <script>
+    // Session check using backend (session cookie)
+    fetch('/api/session-check', { credentials: 'include' })
+      .then(res => {
+        if (!res.ok) throw new Error('Not logged in');
+        return res.json();
+      })
+      .then(data => {
+        // Optionally show username: data.username
+      })
+      .catch(() => {
+        // Redirect to login page served by Flask
+        window.location.href = '/login';
+      });
+  </script>
+  <div class="header">
+    <h1>🚀 Affiliate Back Office</h1>
+  </div>
+
+  <div class="section">
+    <h2>How to Get Paid: Stripe Setup Guide</h2>
+    <ol>
+      <li>Go to <a href="https://dashboard.stripe.com/register" target="_blank">Stripe’s sign-up page</a>.</li>
+      <li>Sign up for a Stripe account: Enter your email, full name, and create a strong password. Click “Continue.”</li>
+      <li>If you already have a Stripe account, just log in instead.</li>
+      <li>Verify your email: Stripe will send you a confirmation email. Open it and click the verification link.</li>
+      <li>Enter your business details: Stripe will ask for your business type (individual/sole proprietor is fine if you’re just starting), your legal name, date of birth, address, and phone number. Use your real information so you can get paid.</li>
+      <li>Add your bank account: Enter your bank account number and routing number. This is where Stripe will send your payouts.</li>
+      <li>Set up two-step authentication: For security, Stripe will ask you to set up two-step authentication (usually with your phone).</li>
+      <li>Finish and connect: Once you’ve completed all steps, your Stripe account is ready! Go back to your affiliate dashboard and connect your Stripe account if needed, or contact support for help.</li>
+    </ol>
+    <div class="tips">
+      <ul>
+        <li>Stripe is safe and used by millions of businesses worldwide.</li>
+        <li>Keep your login details secure and never share your password.</li>
+        <li>If you get stuck, visit <a href="https://support.stripe.com/" target="_blank">Stripe Support</a> or ask our support team for help.</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="section">
+    <h2>How to Mask Your Domain Name (Domain Forwarding with Masking)</h2>
+    <ol>
+      <li>Log in to your domain registrar (e.g., Namecheap, GoDaddy, Google Domains).</li>
+      <li>Find your domain: Go to your list of domains and select the one you want to use for your affiliate link.</li>
+      <li>Open DNS or Forwarding settings: Look for a section called “DNS,” “Domain Forwarding,” or “URL Forwarding.”</li>
+      <li>Set up forwarding: Find the option to forward your domain. Enter your affiliate link or landing page as the destination URL.</li>
+      <li>Enable Masking or Cloaking: Make sure to turn on “Masking” or “Cloaking” so your domain name stays in the browser address bar (not all registrars support this—if you don’t see it, check their help docs).</li>
+      <li>Save your changes: It may take a few minutes to a few hours for changes to take effect.</li>
+    </ol>
+    <div class="tips">
+      <ul>
+        <li>If you’re stuck, search “how to forward domain with masking on [your registrar]” on Google or YouTube.</li>
+        <li>Masking helps keep your links looking clean and professional, and can help avoid blocks on social media.</li>
+        <li>Contact your registrar’s support if you can’t find the option.</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="section">
+    <h2>Level Up: Facebook, Instagram, Twitter, TikTok Ads (Beginner Friendly)</h2>
+    <ol>
+      <li><strong>Facebook Ads:</strong> <a href="#facebook">Step-by-Step Beginner Guide</a></li>
+      <li><strong>Instagram Ads:</strong> <a href="#instagram">Step-by-Step Beginner Guide</a></li>
+      <li><strong>Twitter Ads:</strong> <a href="#twitter">Step-by-Step Beginner Guide</a></li>
+      <li><strong>TikTok Ads:</strong> <a href="#tiktok">Step-by-Step Beginner Guide</a></li>
+    </ol>
+    <div class="tips">
+      <ul>
+        <li>Use real photos or videos, not stock images, for better results.</li>
+        <li>Keep your message simple and direct.</li>
+        <li>Start with a small budget and scale up as you see results.</li>
+        <li>Don’t worry if your first ad isn’t perfect—test and learn!</li>
+        <li>Need help? Search for ad tutorials on YouTube for video walkthroughs.</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="section" id="facebook">
+    <h2>Facebook Ads: Step-by-Step Beginner Guide</h2>
+    <ol>
+      <li>Create a Facebook account: Go to facebook.com and sign up with your real name and email. You’ll need this to run ads.</li>
+      <li>Set up Facebook Business Manager: Visit business.facebook.com and click “Create Account.” Enter your business name, your name, and your email. Confirm your email address.</li>
+      <li>Create an Ad Account: In Business Manager, go to “Business Settings” &gt; “Accounts” &gt; “Ad Accounts.” Click “Add” &gt; “Create a New Ad Account.” Name it, set your time zone and currency, and assign yourself as the admin.</li>
+      <li>Add a Payment Method: In Business Settings, go to “Payments” and add your credit/debit card or PayPal. This is required to run ads.</li>
+      <li>Go to Facebook Ads Manager: Visit facebook.com/adsmanager. This is where you’ll create and manage your ads.</li>
+      <li>Create Your First Campaign: Click the green “Create” button. Choose your campaign objective (for beginners, “Traffic” or “Leads” is a good start). Name your campaign and click “Continue.”</li>
+      <li>Set Up Your Ad Set:
+        <ul>
+          <li>Audience: Choose your target location, age, gender, and interests. For example, “United States, 18-65+, interested in fitness.”</li>
+          <li>Budget &amp; Schedule: Set a daily or lifetime budget. Start small (e.g., $5/day).</li>
+          <li>Placements: Choose “Automatic Placements” for now.</li>
+        </ul>
+      </li>
+      <li>Create Your Ad:
+        <ul>
+          <li>Identity: Select your Facebook Page (create one if you don’t have it).</li>
+          <li>Format: Choose “Single Image or Video” for simplicity.</li>
+          <li>Media: Upload a clear, eye-catching image or video. Use free tools like Canva to design your ad.</li>
+          <li>Primary Text: Write a short, clear message. Example: “Get fit at home! Try our free workout plan.”</li>
+          <li>Headline: A catchy title, e.g., “Start Today!”</li>
+          <li>Call to Action: Pick a button like “Learn More” or “Sign Up.”</li>
+          <li>Destination: Enter your affiliate or landing page link.</li>
+        </ul>
+      </li>
+      <li>Review and Publish: Double-check everything, then click “Publish.” Your ad will be reviewed by Facebook (usually within an hour).</li>
+      <li>Track Results: In Ads Manager, you’ll see how many people saw, clicked, or signed up from your ad. Adjust your budget or audience as you learn what works.</li>
+    </ol>
+  </div>
+
+  <div class="section" id="instagram">
+    <h2>Instagram Ads: Step-by-Step Beginner Guide</h2>
+    <ol>
+      <li>Set up an Instagram account: Download the Instagram app or go to instagram.com and sign up with your email or phone number.</li>
+      <li>Switch to a Professional Account: In the Instagram app, go to your profile, tap the menu (≡), then “Settings” &gt; “Account” &gt; “Switch to Professional Account.” Choose “Business.”</li>
+      <li>Connect to a Facebook Page: Instagram ads are managed through Facebook Ads Manager. Link your Instagram account to a Facebook Page (you can create one if you don’t have it).</li>
+      <li>Go to Facebook Ads Manager: Visit facebook.com/adsmanager. Click “Create” to start a new campaign.</li>
+      <li>Choose your objective: For beginners, “Traffic” or “Engagement” is a good start.</li>
+      <li>Set your audience, budget, and schedule: Just like with Facebook ads, pick your target location, age, interests, and set a daily budget.</li>
+      <li>Choose Instagram placements: In the “Placements” section, select “Manual Placements” and check “Instagram Feed” and/or “Instagram Stories.”</li>
+      <li>Create your ad: Upload a high-quality image or video, write a catchy caption, and add a call-to-action button (like “Shop Now” or “Learn More”).</li>
+      <li>Review and publish: Double-check your ad and click “Publish.”</li>
+      <li>Track your results: Use Ads Manager to see how your ad is performing and make changes as needed.</li>
+    </ol>
+  </div>
+
+  <div class="section" id="twitter">
+    <h2>Twitter Ads: Step-by-Step Beginner Guide</h2>
+    <ol>
+      <li>Create a Twitter account: Go to twitter.com and sign up with your email or phone number.</li>
+      <li>Go to Twitter Ads: Visit ads.twitter.com and log in.</li>
+      <li>Set up your account: Enter your country and time zone, then click “Let’s go.”</li>
+      <li>Choose your campaign objective: For beginners, “Website Traffic” or “Followers” is a good start.</li>
+      <li>Set your budget: Decide how much you want to spend per day or for the whole campaign.</li>
+      <li>Define your audience: Pick your target location, age, gender, and interests.</li>
+      <li>Create your ad: Write a short, catchy tweet, add an image or video, and include your link. Preview your ad.</li>
+      <li>Launch your campaign: Review everything and click “Launch campaign.”</li>
+      <li>Track your results: Use Twitter Ads dashboard to see clicks, impressions, and engagement.</li>
+    </ol>
+  </div>
+
+  <div class="section" id="tiktok">
+    <h2>TikTok Ads: Step-by-Step Beginner Guide</h2>
+    <ol>
+      <li>Create a TikTok account: Download the TikTok app or go to tiktok.com and sign up.</li>
+      <li>Go to TikTok Ads Manager: Visit ads.tiktok.com and sign up for an advertiser account.</li>
+      <li>Set up your business info: Enter your business name, industry, and contact info.</li>
+      <li>Add a payment method: Enter your credit/debit card or PayPal.</li>
+      <li>Create your first campaign: Click “Campaign” &gt; “Create.” Choose your objective (e.g., “Traffic” or “Conversions”).</li>
+      <li>Set your ad group: Pick your audience, budget, and schedule. Choose “Automatic Placement” for now.</li>
+      <li>Create your ad: Upload a vertical video (9:16), write a short description, and add your link.</li>
+      <li>Review and submit: Double-check your ad and click “Submit.”</li>
+      <li>Track your results: Use TikTok Ads Manager to see views, clicks, and conversions.</li>
+    </ol>
+  </div>
+
+  <div class="leaderboard">
+    <h3>🏆 Empire Leaderboard</h3>
+    <ul class="leaderboard-list" id="leaderboard-list">
+      <li>Loading leaderboard...</li>
+    </ul>
+    <div class="error" id="leaderboard-error" style="display:none;">Error: Failed to fetch leaderboard</div>
+  </div>
+
+  <script>
+    // Example leaderboard fetch (replace with your real API endpoint)
+    async function loadLeaderboard() {
+      const list = document.getElementById('leaderboard-list');
+      const error = document.getElementById('leaderboard-error');
+      try {
+        const res = await fetch('/api/leaderboard');
+        if (!res.ok) throw new Error('Network error');
+        const data = await res.json();
+        list.innerHTML = '';
+        if (data.leaderboard && data.leaderboard.length > 0) {
+          data.leaderboard.forEach((entry, i) => {
+            const crown = i === 0 ? '👑 ' : '';
+            const li = document.createElement('li');
+            li.innerHTML = `${crown}${entry.username} — $${entry.earnings}/day`;
+            list.appendChild(li);
+          });
+        } else {
+          list.innerHTML = '<li>No leaderboard data yet.</li>';
+        }
+        error.style.display = 'none';
+      } catch (e) {
+        error.style.display = 'block';
+        list.innerHTML = '';
+      }
+    }
+    loadLeaderboard();
+  </script>
+</body>
+</html>
